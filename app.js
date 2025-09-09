@@ -1,3 +1,6 @@
+// Хранилище файлов в памяти
+let fileStore = new Map();
+
 // Загрузка материалов при открытии страницы
 document.addEventListener('DOMContentLoaded', () => loadMaterials(''));
 
@@ -7,24 +10,14 @@ document.getElementById('uploadForm').addEventListener('submit', (e) => {
     const title = document.getElementById('title').value;
     const description = document.getElementById('description').value;
     const file = document.getElementById('file').files[0];
-    
     if (file) {
-        // Преобразуем файл в base64
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const base64Data = e.target.result;
-            const id = Date.now();
-            const materials = JSON.parse(localStorage.getItem('materials') || '[]');
-            materials.push({ id, title, description, filename: file.name, fileData: base64Data });
-            try {
-                localStorage.setItem('materials', JSON.stringify(materials));
-                loadMaterials('');
-                e.target.reset();
-            } catch (error) {
-                alert('Ошибка: слишком большой файл или недостаточно места в localStorage. Попробуйте файл меньшего размера.');
-            }
-        };
-        reader.readAsDataURL(file);
+        const id = Date.now();
+        fileStore.set(id, file);
+        const materials = JSON.parse(localStorage.getItem('materials') || '[]');
+        materials.push({ id, title, description, filename: file.name });
+        localStorage.setItem('materials', JSON.stringify(materials));
+        loadMaterials('');
+        e.target.reset();
     }
 });
 
@@ -48,21 +41,23 @@ function loadMaterials(query) {
             <div class="material-info">
                 <strong>${m.title}</strong>: ${m.description}
             </div>
-            <button class="download-btn" onclick="downloadFile(${m.id}, '${m.filename}', '${m.fileData}')">Скачать</button>
+            <button class="download-btn" onclick="downloadFile(${m.id}, '${m.filename}')">Скачать</button>
         `;
         list.appendChild(li);
     });
 }
 
 // Функция скачивания файла
-function downloadFile(id, filename, base64Data) {
-    try {
-        const linkSource = base64Data;
+function downloadFile(id, filename) {
+    const file = fileStore.get(id);
+    if (file) {
+        const url = URL.createObjectURL(file);
         const a = document.createElement('a');
-        a.href = linkSource;
+        a.href = url;
         a.download = filename;
         a.click();
-    } catch (error) {
-        alert('Ошибка при скачивании файла. Попробуйте загрузить заново.');
+        URL.revokeObjectURL(url);
+    } else {
+        alert('Файл недоступен. Попробуйте загрузить заново.');
     }
 }
