@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Платформа обмена учебными материалами</title>
+  <link rel="stylesheet" href="main.css">
+</head>
+
+<body>
+  <div class="container">
+    <h1>Обмен учебными материалами</h1>
+
+    <!-- Форма добавления материала -->
+    <form id="uploadForm" class="form-group">
+      <label for="title">Название материала</label>
+      <input type="text" id="title" required>
+      <label for="description">Описание</label>
+      <textarea id="description" required></textarea>
+      <label for="file">Файл (PDF, DOC и т.д.)</label>
+      <input type="file" id="file" accept=".pdf,.doc,.docx,.txt" required>
+      <button type="submit">Добавить</button>
+    </form>
+
+    <!-- Поиск -->
+    <form id="searchForm" class="search-form">
+      <input type="text" id="searchQuery" placeholder="Поиск по названию">
+      <button type="submit">Искать</button>
+    </form>
+
+    <!-- Список материалов -->
+    <h2>Доступные материалы</h2>
+    <ul class="materials-list" id="materialsList"></ul>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
