@@ -12,7 +12,6 @@
   <div class="container">
     <h1>Обмен учебными материалами</h1>
 
-    <!-- Форма добавления материала -->
     <form id="uploadForm" class="form-group">
       <label for="title">Название материала</label>
       <input type="text" id="title" required>
@@ -23,29 +22,20 @@
       <button type="submit">Добавить</button>
     </form>
 
-    <!-- Поиск -->
     <form id="searchForm" class="search-form">
       <input type="text" id="searchQuery" placeholder="Поиск по названию">
       <button type="submit">Искать</button>
     </form>
 
-    <!-- Список материалов -->
     <h2>Доступные материалы</h2>
     <ul class="materials-list" id="materialsList"></ul>
   </div>
 
   <!-- Google API -->
-  <script src="https://apis.google.com/js/api.js" async defer></script>
+  <script src="https://apis.google.com/js/api.js"></script>
 
-  <!-- Подключение твоего JS -->
+  <!-- Твой JavaScript -->
   <script src="app.js"></script>
-
-  <script>
-    // Запуск авторизации при загрузке страницы
-    window.onload = function () {
-      handleClientLoad();
-    };
-  </script>
 </body>
 
 </html>
