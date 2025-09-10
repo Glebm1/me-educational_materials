@@ -1,63 +1,90 @@
-// Хранилище файлов в памяти
-let fileStore = new Map();
+const CLIENT_ID = "57760898537-6hie2j6c3ii0bqg7vbs1cjcmo7fd3qbu.apps.googleusercontent.com";
+const API_KEY = "AIzaSyC1ZZJUPlCwuwdFCjbOV8zbXaGjEd4b6i8";
+const FOLDER_ID = "1yGY867_7y-M5I5K3vUbnFXgV64quShRG";
 
-// Загрузка материалов при открытии страницы
-document.addEventListener('DOMContentLoaded', () => loadMaterials(''));
+const SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.metadata.readonly";
 
-// Обработка формы добавления
-document.getElementById('uploadForm').addEventListener('submit', (e) => {
+// Авторизация
+function handleClientLoad() {
+    gapi.load("client:auth2", initClient);
+}
+
+function initClient() {
+    gapi.client.init({
+        apiKey: API_KEY,
+        clientId: CLIENT_ID,
+        discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
+        scope: SCOPES
+    }).then(() => {
+        if (!gapi.auth2.getAuthInstance().isSignedIn.get()) {
+            gapi.auth2.getAuthInstance().signIn();
+        }
+        loadMaterials('');
+    });
+}
+
+// Загрузка файла
+document.getElementById("uploadForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const title = document.getElementById('title').value;
-    const description = document.getElementById('description').value;
-    const file = document.getElementById('file').files[0];
-    if (file) {
-        const id = Date.now();
-        fileStore.set(id, file);
-        const materials = JSON.parse(localStorage.getItem('materials') || '[]');
-        materials.push({ id, title, description, filename: file.name });
-        localStorage.setItem('materials', JSON.stringify(materials));
+    const title = document.getElementById("title").value;
+    const description = document.getElementById("description").value;
+    const file = document.getElementById("file").files[0];
+
+    if (!file) return alert("Выберите файл!");
+
+    const metadata = {
+        name: `${title} - ${file.name}`,
+        parents: [FOLDER_ID],
+        description: description
+    };
+
+    const form = new FormData();
+    form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
+    form.append("file", file);
+
+    const accessToken = gapi.auth.getToken().access_token;
+    const res = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id", {
+        method: "POST",
+        headers: new Headers({ "Authorization": "Bearer " + accessToken }),
+        body: form
+    });
+
+    if (res.ok) {
+        alert("Файл успешно загружен!");
         loadMaterials('');
         e.target.reset();
+    } else {
+        alert("Ошибка при загрузке файла!");
     }
 });
 
-// Обработка поиска
-document.getElementById('searchForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const query = document.getElementById('searchQuery').value;
-    loadMaterials(query);
-});
+// Загрузка списка файлов
+async function loadMaterials(query) {
+    const response = await gapi.client.drive.files.list({
+        q: `'${FOLDER_ID}' in parents and trashed=false and name contains '${query}'`,
+        fields: "files(id, name, webViewLink, description)"
+    });
 
-// Функция загрузки материалов
-function loadMaterials(query) {
-    const materials = JSON.parse(localStorage.getItem('materials') || '[]');
-    const filtered = materials.filter(m => m.title.toLowerCase().includes(query.toLowerCase()));
-    const list = document.getElementById('materialsList');
-    list.innerHTML = '';
-    filtered.forEach(m => {
-        const li = document.createElement('li');
-        li.className = 'material-item';
+    const list = document.getElementById("materialsList");
+    list.innerHTML = "";
+
+    response.result.files.forEach(file => {
+        const li = document.createElement("li");
+        li.className = "material-item";
         li.innerHTML = `
             <div class="material-info">
-                <strong>${m.title}</strong>: ${m.description}
+                <strong>${file.name}</strong><br>
+                ${file.description || ""}
             </div>
-            <button class="download-btn" onclick="downloadFile(${m.id}, '${m.filename}')">Скачать</button>
+            <a href="${file.webViewLink}" target="_blank" class="download-btn">Скачать</a>
         `;
         list.appendChild(li);
     });
 }
 
-// Функция скачивания файла
-function downloadFile(id, filename) {
-    const file = fileStore.get(id);
-    if (file) {
-        const url = URL.createObjectURL(file);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
-    } else {
-        alert('Файл недоступен. Попробуйте загрузить заново.');
-    }
-}
+// Поиск
+document.getElementById("searchForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const query = document.getElementById("searchQuery").value;
+    loadMaterials(query);
+});
