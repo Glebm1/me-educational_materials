@@ -4,24 +4,21 @@ const FOLDER_ID = "1yGY867_7y-M5I5K3vUbnFXgV64quShRG";
 
 const SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.metadata.readonly";
 
-// Авторизация
-function handleClientLoad() {
-    gapi.load("client:auth2", initClient);
-}
-
-function initClient() {
+// Загружаем клиентскую библиотеку и сразу инициализируем
+gapi.load("client:auth2", () => {
     gapi.client.init({
         apiKey: API_KEY,
         clientId: CLIENT_ID,
         discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
         scope: SCOPES
     }).then(() => {
+        // Если пользователь не вошёл — сразу открываем окно входа
         if (!gapi.auth2.getAuthInstance().isSignedIn.get()) {
             gapi.auth2.getAuthInstance().signIn();
         }
         loadMaterials('');
     });
-}
+});
 
 // Загрузка файла
 document.getElementById("uploadForm").addEventListener("submit", async (e) => {
