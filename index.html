@@ -34,7 +34,18 @@
     <ul class="materials-list" id="materialsList"></ul>
   </div>
 
+  <!-- Google API -->
+  <script src="https://apis.google.com/js/api.js" async defer></script>
+
+  <!-- Подключение твоего JS -->
   <script src="app.js"></script>
+
+  <script>
+    // Запуск авторизации при загрузке страницы
+    window.onload = function () {
+      handleClientLoad();
+    };
+  </script>
 </body>
 
 </html>
